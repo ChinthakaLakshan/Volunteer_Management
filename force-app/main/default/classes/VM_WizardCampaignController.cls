@@ -86,8 +86,21 @@ public  class VM_WizardCampaignController {
         }
     }
     
-    public void createJobReccurenceShedule(String daysOfWeek ,String weeklyOccurrence , Date sheduledStartdate ,Date sheduledEndDate ){
+    public void createJobReccurenceShedule(String daysOfWeek /*,String weeklyOccurrence*/,DateTime sheduledStartdate ,DateTime sheduledEndDate ){
+         List<GW_Volunteers__Volunteer_Shift__c> shifts = new List<GW_Volunteers__Volunteer_Shift__c>();
         
+       
+        Integer saturdayCount =0;
+        while(sheduledStartdate<=sheduledEndDate){
+            
+   
+            
+            if(sheduledStartdate.format('EEEE').toLowerCase() ==daysOfWeek){
+              saturdayCount++;
+            }
+            sheduledStartdate=sheduledStartdate.addDays(1);
+        }
+         System.debug(saturdayCount);
         
         
     } 
