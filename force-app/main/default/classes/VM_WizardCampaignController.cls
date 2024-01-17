@@ -16,6 +16,9 @@ public  class VM_WizardCampaignController {
         @AuraEnabled
         public List<VolunteerProgramme> Volunteer_Programme {get;set;}
         
+            // @AuraEnabled
+        //public List<VolunteerShift> Volunteer_Shift {get;set;}
+      
         
         
     }
@@ -35,6 +38,25 @@ public  class VM_WizardCampaignController {
         @AuraEnabled
         public String volunteerProgrammeFrequency {get;set;} 
         
+     @AuraEnabled
+      public List<VolunteerShift> Volunteer_Shift {get;set;}
+        
+        
+        
+    }
+    
+    public class VolunteerShift{
+         @AuraEnabled
+        public String shiftStartDate {get;set;} 
+        
+         @AuraEnabled
+        public String shiftStartTime {get;set;} 
+         
+        @AuraEnabled
+        public String shiftDuration {get;set;} 
+        
+           @AuraEnabled
+        public String shiftDescription {get;set;} 
     }
     
     
@@ -43,9 +65,10 @@ public  class VM_WizardCampaignController {
     
     @AuraEnabled
     public static void createCampaignWizard(String wrapperText){
-        wrapperText = '{"campaignName":"Car washing","campaignDescription":"cleaning surface","Volunteer_Programme":[{"volunteerProgrammeName":"cleaning", "skills":"Manual labour"} , {"volunteerProgrammeName":"washing", "skills":"writing"}]}';
+        wrapperText = '{"campaignName":"Car washing","campaignDescription":"cleaning surface","Volunteer_Programme":[{"volunteerProgrammeName":"cleaning", "skills":"Manual labour" ,"Volunteer_Shift":[{"shiftStartDate":"2023-01-15T14:30:00.000Z" , "shiftDuration":"3" ,"shiftDescription":"first shift"}]} , {"volunteerProgrammeName":"washing", "skills":"writing"}]}';
         
         List<GW_Volunteers__Volunteer_Job__c> volunteerprogramme = new List<GW_Volunteers__Volunteer_Job__c>();
+        List<GW_Volunteers__Volunteer_Shift__c> Volunteershift = new List<GW_Volunteers__Volunteer_Shift__c>();
         
         try {
             VM_WizardCampaignWrapper wrapper = (VM_WizardCampaignWrapper)JSON.deserialize(wrapperText, VM_WizardCampaignWrapper.class);
@@ -55,55 +78,76 @@ public  class VM_WizardCampaignController {
                 Campaign campaign =new Campaign();
                 campaign.Name=wrapper.campaignName;
                 
-                //insert campaign;
-                System.debug('campaign id'+campaign.Id); 
+                insert campaign;
+               
                 
                 if(wrapper.Volunteer_Programme!=null){
                     
                     
                     System.debug('programme list'+wrapper.Volunteer_Programme);
+                 
+                    
                     
                     for(VolunteerProgramme vp:wrapper.Volunteer_Programme){
                         GW_Volunteers__Volunteer_Job__c c = new GW_Volunteers__Volunteer_Job__c();
                         c.GW_Volunteers__Campaign__c =campaign.Id;
+                         
                         c.Name=vp.volunteerProgrammeName;
                         c.GW_Volunteers__Skills_Needed__c=vp.skills;
+                        System.debug(vp.volunteerProgrammeName);
                         
-                        volunteerprogramme.add(c);
+                         volunteerprogramme.add(c);
+                       
+                    
+                        if (vp.Volunteer_Shift!=null){
+                            
+                              System.debug('shift list' + vp.Volunteer_Shift);
+                            
+                            
+                        for(VolunteerShift vs:vp.Volunteer_Shift){
+                            
+                            
+                            GW_Volunteers__Volunteer_Shift__c s =new GW_Volunteers__Volunteer_Shift__c();
+                            
+                            s.GW_Volunteers__Volunteer_Job__c=c.Id;
                         
+                              System.debug('job id'+c.Id);
+                            s.GW_Volunteers__Description__c=vs.shiftDescription;
+                            
+                            Date convertedDate=Date.valueof(vs.shiftStartDate);
+                            s.GW_Volunteers__Start_Date_Time__c=convertedDate;
+                            
+                            Decimal decimalValue =Decimal.valueOf(vs.shiftDuration);
+                            s.GW_Volunteers__Duration__c=decimalValue;
+                           
+                            
+                             Volunteershift.add(s);
+                            
+                          
+                        }
+                            
+                            
+                        }
+                        
+                      
+                      
                         
                     }
-                    //insert  volunteerprogramme;
-                    
+                     insert  volunteerprogramme;              
+                      insert   Volunteershift;    
+                   
                 }
                 
-                
+                      
             }
-            if(!volunteerprogramme.isEmpty()) {}
+            
             
         } catch (Exception e) {
             System.debug(e);
         }
     }
     
-    public void createJobReccurenceShedule(String daysOfWeek /*,String weeklyOccurrence*/,DateTime sheduledStartdate ,DateTime sheduledEndDate ){
-         List<GW_Volunteers__Volunteer_Shift__c> shifts = new List<GW_Volunteers__Volunteer_Shift__c>();
-        
-       
-        Integer saturdayCount =0;
-        while(sheduledStartdate<=sheduledEndDate){
-            
-   
-            
-            if(sheduledStartdate.format('EEEE').toLowerCase() ==daysOfWeek){
-              saturdayCount++;
-            }
-            sheduledStartdate=sheduledStartdate.addDays(1);
-        }
-         System.debug(saturdayCount);
-        
-        
-    } 
+
     
     
 }
